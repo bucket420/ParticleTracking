@@ -1,0 +1,17 @@
+Positive/01hz left0.png
+Positive/01hz left100.png
+Positive/01hz left150.png
+Positive/01hz left50.png
+Positive/01hz right0.png
+Positive/01hz right150.png
+Positive/01hz right300.png
+Positive/01hz right700.png
+Positive/06hz left650.png
+Positive/11hz left0.png
+Positive/11hz right450.png
+Positive/13hz left250.png
+Positive/13hz left50.png
+Positive/15hz left700.png
+Positive/15hz right0.png
+Positive/15hz right300.png
+Positive/15hz right450.png
