@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from laptrack import LapTrack
 
-
 def extract_frames(path, invert=True, *args, **kwargs):
     video = cv.VideoCapture(path)
     num_frames = int(video.get(cv.CAP_PROP_FRAME_COUNT))
@@ -33,23 +32,17 @@ def detect_video(path, model, alpha=0.5, beta=0.5, cutoff=0.99):
     detections = [detect_frame(frame, model, alpha=alpha, beta=beta, cutoff=cutoff) for frame in frames]
     return detections
 
-def extract_first_frame(path, invert=True):
-    video = cv.VideoCapture(path)
-    _, frame = video.read()
-    if invert: 
-        frame = skimage.util.invert(frame)
-    frame = frame / 256
-    video.release()
-    return frame
-
-def link_particles(detected, scale, fps, min_duration=100, min_displacement=100):
+def link_particles(detected, scale, fps, min_duration=100, min_displacement=100, 
+                   gap_closing_max_frame_count=5, gap_closing_cost_cutoff=400):
     spots = []
     for i, frame in enumerate(detected):
         for spot in frame:
             spots.append([i, spot[1], spot[0]])
     spots_df = pd.DataFrame(spots, columns=["frame", "x", "y"])
     
-    lt = LapTrack(gap_closing_max_frame_count=5, gap_closing_cost_cutoff=400)
+    lt = LapTrack(gap_closing_max_frame_count=gap_closing_max_frame_count, 
+                  gap_closing_cost_cutoff=gap_closing_cost_cutoff)
+    
     track_df, _, _ = lt.predict_dataframe(spots_df, ["x", "y"], only_coordinate_cols=False)
     track_df = track_df.reset_index()
     ntracks = track_df["track_id"].nunique()
@@ -57,7 +50,7 @@ def link_particles(detected, scale, fps, min_duration=100, min_displacement=100)
     tracks = []
     for track_id in range(ntracks):
         track = track_df[track_df["track_id"] == track_id]
-        if len(track) < 100 or abs(track["x"].iloc[-1] - track["x"].iloc[0]) < 100:
+        if len(track) < min_duration or abs(track["x"].iloc[-1] - track["x"].iloc[0]) < min_displacement:
             continue
         track = track[['frame', 'x', 'y']]
         time = np.ravel(track['frame'].to_numpy()) / fps
