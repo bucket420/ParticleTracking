@@ -33,7 +33,7 @@ def detect_video(path, model, alpha=0.5, beta=0.5, cutoff=0.99):
     return detections
 
 def link_particles(detected, scale, fps, min_duration=100, min_displacement=100, 
-                   gap_closing_max_frame_count=5, gap_closing_cost_cutoff=400):
+                   gap_closing_max_frame_count=5, gap_closing_cost_cutoff=225):
     spots = []
     for i, frame in enumerate(detected):
         for spot in frame:
