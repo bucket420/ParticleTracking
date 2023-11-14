@@ -83,7 +83,7 @@ def link_particles(detected, scale, fps, min_duration=100, min_displacement=100,
     return tracks
 
 def track_all(path, model, scale, fps, min_duration=100, min_displacement=100, 
-              alpha=0.5, beta=0.5, cutoff=0.99):
+              alpha=0.5, beta=0.5, cutoff=0.99, gap_closing_max_frame_count=5, gap_closing_cost_cutoff=225):
     raw_path = path + "\\raw"
     os.mkdir(raw_path)
     files = os.listdir(path)
@@ -93,7 +93,9 @@ def track_all(path, model, scale, fps, min_duration=100, min_displacement=100,
         os.mkdir(track_path)
         detected = detect_video(file, model, alpha=alpha, beta=beta, cutoff=cutoff)
         tracks = link_particles(detected, scale=scale, fps=fps, 
-                                min_duration=min_duration, min_displacement=min_displacement)
+                                min_duration=min_duration, min_displacement=min_displacement,
+                                gap_closing_max_frame_count=gap_closing_max_frame_count,
+                                gap_closing_cost_cutoff=gap_closing_cost_cutoff)
         for i, track in enumerate(tracks):
             track.to_csv(track_path + "\\" + str(i) + ".csv")
     
