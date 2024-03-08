@@ -99,5 +99,11 @@ def track_all(path, model, scale, fps, min_duration=100, min_displacement=100,
         for i, track in enumerate(tracks):
             track.to_csv(track_path + "\\" + str(i) + ".csv")
     
+def draw_tracks(tracks, img, color=(0, 255, 0), thickness=2):
+    for track in tracks:
+        for i in range(len(track) - 1):
+            cv.line(img, (int(track['x'].iloc[i]), int(track['y'].iloc[i])), 
+                    (int(track['x'].iloc[i+1]), int(track['y'].iloc[i+1])), color, thickness)
+    return img
             
     
