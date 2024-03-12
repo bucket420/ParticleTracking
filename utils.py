@@ -5,6 +5,7 @@ import skimage
 import matplotlib.pyplot as plt
 import pandas as pd
 from laptrack import LapTrack
+import json
 
 def extract_frames(path, invert=True, *args, **kwargs):
     video = cv.VideoCapture(path)
@@ -69,7 +70,6 @@ def link_particles(detected, scale, fps, min_duration=100, min_displacement=100,
                 vx.append(delta_x[i] / time[i])
                 vy.append(delta_y[i] / time[i])
                 v.append(np.sqrt(vx[i]**2 + vy[i]**2))
-                
         track['time'] = time
         track['x_um'] = x_um
         track['y_um'] = y_um
@@ -82,23 +82,33 @@ def link_particles(detected, scale, fps, min_duration=100, min_displacement=100,
     
     return tracks
 
-def track_all(path, model, scale, fps, min_duration=100, min_displacement=100, 
-              alpha=0.5, beta=0.5, cutoff=0.99, gap_closing_max_frame_count=5, gap_closing_cost_cutoff=225):
-    raw_path = path + "\\raw"
-    os.mkdir(raw_path)
+def detect_all(path, model, alpha=0.5, beta=0.5, cutoff=0.99):
+    detections_path = path + "\\detections"
+    os.mkdir(detections_path)
     files = os.listdir(path)
     files = [os.path.join(path, file) for file in files]
     for file in files:
-        track_path = raw_path + "\\" + file.split("\\")[-1][:-4]
-        os.mkdir(track_path)
         detected = detect_video(file, model, alpha=alpha, beta=beta, cutoff=cutoff)
+        np.save(detections_path + "\\" + file.split("\\")[-1][:-4] + ".npy", np.array(detected, dtype=object), allow_pickle=True)   
+             
+def track_all(path, scale, fps, min_duration=100, min_displacement=100, 
+              gap_closing_max_frame_count=5, gap_closing_cost_cutoff=225):
+    tracks_path = path + "\\tracks"
+    detections_path = path + "\\detections"
+    os.mkdir(tracks_path)
+    files = os.listdir(path)
+    files = [os.path.join(path, file) for file in files]
+    for file in files:
+        video_tracks = tracks_path + "\\" + file.split("\\")[-1][:-4]
+        os.mkdir(video_tracks)
+        detected = np.load(detections_path + "\\" + file.split("\\")[-1][:-4] + ".npy", allow_pickle=True)
         tracks = link_particles(detected, scale=scale, fps=fps, 
                                 min_duration=min_duration, min_displacement=min_displacement,
                                 gap_closing_max_frame_count=gap_closing_max_frame_count,
                                 gap_closing_cost_cutoff=gap_closing_cost_cutoff)
         for i, track in enumerate(tracks):
-            track.to_csv(track_path + "\\" + str(i) + ".csv")
-    
+            track.to_csv(video_tracks + "\\" + str(i) + ".csv")
+         
 def draw_tracks(tracks, img, color=(0, 255, 0), thickness=2):
     for track in tracks:
         for i in range(len(track) - 1):
